@@ -16,14 +16,18 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 
 async def create_user(body: UserCreateSchema, db: AsyncSession = Depends(get_db)):
-    avatar = None
-    try:
-        g = Gravatar(body.email)
-        avatar = g.get_image()
-    except Exception as e:  # noqa: BLE001
-        print(e)
+    if body.avatar is None or body.avatar == "":
+        avatar = None
+        try:
+            g = Gravatar(body.email)
+            avatar = g.get_image()
+            body.avatar = avatar
+        except Exception as e:  # noqa: BLE001
+            print(e)
+            body.avatar = avatar
 
-    new_user = User(**body.model_dump(), avatar=avatar)
+    new_user = User(**body.model_dump())
+
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)

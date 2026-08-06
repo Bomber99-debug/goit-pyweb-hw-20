@@ -23,7 +23,7 @@ class UserCreateSchema(BaseModel):
     user_name: str = Field(min_length=3, max_length=255)
     email: EmailStr
     password: str = Field(min_length=6, max_length=20)
-    avatar: str | None
+    avatar: str | None = Field(default=None)
 
 class TokenShema(BaseModel):
     access_token: str
