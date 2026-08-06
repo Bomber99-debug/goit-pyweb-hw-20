@@ -11,7 +11,6 @@ from src.repository import users as users_repository
 from src.schemas.user import UserCreateSchema, UserResponseSchema
 from src.services.auth import auth_service
 
-
 router = APIRouter(
     prefix="/auth",
     tags=["auth"],
@@ -29,7 +28,7 @@ async def signup(body: UserCreateSchema, db: AsyncSession = Depends(get_db)):
         )
     body.password = auth_service.get_password_hash(body.password)
     new_user = await users_repository.create_user(body=body, db=db)
-    return {}
+    return new_user
 
 
 @router.post("/login")
