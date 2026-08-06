@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.db import get_db
 from src.entity.models import User
 from src.repository import users as users_repository
-from src.schemas.user import UserBaseSchema, UserResponseSchema
+from src.schemas.user import UserCreateSchema, UserResponseSchema
 from src.services.auth import auth_service
 
 
@@ -21,7 +21,7 @@ router = APIRouter(
 @router.post(
     "/signup", response_model=UserResponseSchema, status_code=status.HTTP_201_CREATED
 )
-async def signup(body: UserBaseSchema, db: AsyncSession = Depends(get_db)):
+async def signup(body: UserCreateSchema, db: AsyncSession = Depends(get_db)):
     exist_user = await users_repository.get_user_by_email(email=body.email, db=db)
     if exist_user:
         raise HTTPException(
