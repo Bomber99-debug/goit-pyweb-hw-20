@@ -29,14 +29,13 @@ async def search_contacts(
             description="Ім'я, прізвище або електронна адреса контакту",
         ),
     ],
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Sequence[Contact]:
     """Шукає контакти за ім'ям, прізвищем або електронною адресою."""
 
     contacts = await search_repository.search_contacts(
-        db=db,
-        query=query,
+        db=db, query=query, user=current_user
     )
 
     return contacts
@@ -47,13 +46,13 @@ async def search_contacts(
     response_model=list[ContactResponseSchema],
 )
 async def get_contacts_with_upcoming_birthdays(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Sequence[Contact]:
     """Повертає контакти з днями народження у найближчому періоді."""
 
     contacts = await search_repository.get_contacts_with_upcoming_birthdays(
-        db=db,
+        db=db, user=current_user
     )
 
     return contacts

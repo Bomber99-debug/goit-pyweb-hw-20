@@ -26,15 +26,13 @@ router = APIRouter(
 async def get_phones(
     limit: int = Query(default=10, ge=10, le=100),
     offset: int = Query(default=0, ge=0),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Sequence[Phone]:
     """Повертає список телефонних номерів з урахуванням пагінації."""
 
     phone_list = await phones_repository.get_phones(
-        db=db,
-        skip=offset,
-        limit=limit,
+        db=db, skip=offset, limit=limit, user=current_user
     )
 
     if phone_list is None:
@@ -51,15 +49,14 @@ async def get_phones(
     response_model=PhoneResponseSchema,
 )
 async def get_phone_by_id(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
     phone_id: int = Path(ge=1),
-    current_user: User = Depends(auth_service.get_current_user),
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Phone:
     """Повертає телефонний номер за його ідентифікатором."""
 
     phone = await phones_repository.get_phone_by_id(
-        db=db,
-        phone_id=phone_id,
+        db=db, phone_id=phone_id, user=current_user
     )
 
     if phone is None:
@@ -77,14 +74,13 @@ async def get_phone_by_id(
 )
 async def create_phone(
     phone_data: PhoneCreateSchema,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Phone:
     """Створює новий телефонний номер."""
 
     phone = await phones_repository.get_phone_by_number(
-        db=db,
-        phone_number=phone_data.number,
+        db=db, phone_number=phone_data.number, user=current_user
     )
     if phone is not None:
         raise HTTPException(
@@ -93,8 +89,7 @@ async def create_phone(
         )
 
     phone = await phones_repository.create_phone(
-        db=db,
-        phone_data=phone_data,
+        db=db, phone_data=phone_data, user=current_user
     )
 
     return phone
@@ -107,14 +102,13 @@ async def create_phone(
 async def update_phone(
     phone_data: PhoneUpdateSchema,
     phone_id: int = Path(ge=1),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Phone:
     """Оновлює телефонний номер за його ідентифікатором."""
 
     phone = await phones_repository.get_phone_by_number(
-        db=db,
-        phone_number=phone_data.number,
+        db=db, phone_number=phone_data.number, user=current_user
     )
     if phone is not None:
         raise HTTPException(
@@ -123,9 +117,7 @@ async def update_phone(
         )
 
     phone = await phones_repository.update_phone(
-        db=db,
-        phone_data=phone_data,
-        phone_id=phone_id,
+        db=db, phone_data=phone_data, phone_id=phone_id, user=current_user
     )
 
     if phone is None:
@@ -142,13 +134,10 @@ async def update_phone(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_phone(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
     phone_id: int = Path(ge=1),
-    current_user: User = Depends(auth_service.get_current_user),
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> None:
     """Видаляє телефонний номер за його ідентифікатором."""
 
-    await phones_repository.delete_phone(
-        db=db,
-        phone_id=phone_id,
-    )
+    await phones_repository.delete_phone(db=db, phone_id=phone_id, user=current_user)

@@ -33,9 +33,7 @@ async def get_contacts(
     """Повертає список контактів з урахуванням пагінації."""
 
     contact_list = await contact_repository.get_contacts(
-        db=db,
-        skip=offset,
-        limit=limit,
+        db=db, skip=offset, limit=limit, user=current_user
     )
 
     if contact_list is None:
@@ -59,8 +57,7 @@ async def get_contact_by_id(
     """Повертає контакт за його ідентифікатором."""
 
     contact = await contact_repository.get_contact_by_id(
-        db=db,
-        contact_id=contact_id,
+        db=db, contact_id=contact_id, user=current_user
     )
 
     if contact is None:
@@ -79,8 +76,8 @@ async def get_contact_by_id(
 )
 async def create_contact(
     contact_data: ContactCreateSchema,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Contact:
     """Створює новий контакт."""
 
@@ -88,6 +85,7 @@ async def create_contact(
         phone = await phones_repository.get_phone_by_number(
             db=db,
             phone_number=phone_data.number,
+            user=current_user
         )
         if phone is not None:
             raise HTTPException(
@@ -96,8 +94,7 @@ async def create_contact(
             )
 
     contact = await contact_repository.create_contact(
-        db=db,
-        contact_data=contact_data,
+        db=db, contact_data=contact_data, user=current_user
     )
 
     return contact
@@ -110,15 +107,14 @@ async def create_contact(
 async def update_contact(
     contact_data: ContactUpdateSchema,
     contact_id: int = Path(ge=1),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(auth_service.get_current_user),
+    db: AsyncSession = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(auth_service.get_current_user),  # noqa: B008
 ) -> Contact:
     """Оновлює контакт за його ідентифікатором."""
 
     for phone_data in contact_data.phones:
         phone = await phones_repository.get_phone_by_number(
-            db=db,
-            phone_number=phone_data.number,
+            db=db, phone_number=phone_data.number, user=current_user
         )
         if phone is not None:
             raise HTTPException(
@@ -127,9 +123,7 @@ async def update_contact(
             )
 
     contact = await contact_repository.update_contact(
-        db=db,
-        contact_data=contact_data,
-        contact_id=contact_id,
+        db=db, contact_data=contact_data, contact_id=contact_id, user=current_user
     )
 
     if contact is None:
@@ -153,6 +147,5 @@ async def delete_contact(
     """Видаляє контакт за його ідентифікатором."""
 
     await contact_repository.delete_contact(
-        db=db,
-        contact_id=contact_id,
+        db=db, contact_id=contact_id, user=current_user
     )

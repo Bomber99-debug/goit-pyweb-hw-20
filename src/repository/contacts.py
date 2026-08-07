@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.entity.models import Contact, Phone
+from src.entity.models import Contact, Phone, User
 from src.schemas.contacts import (
     ContactCreateSchema,
     ContactUpdateSchema,
@@ -13,16 +13,14 @@ from src.schemas.contacts import (
 
 async def get_contacts(
     db: AsyncSession,
+    user: User,
     skip: int = 0,
     limit: int = 100,
 ) -> Sequence[Contact]:
     """Повертає список контактів з урахуванням пагінації."""
 
     statement = (
-        select(Contact)
-        .options(selectinload(Contact.phones))
-        .offset(skip)
-        .limit(limit)
+        select(Contact).filter_by(user=user).options(selectinload(Contact.phones)).offset(skip).limit(limit)
     )
 
     result = await db.execute(statement)
@@ -32,14 +30,13 @@ async def get_contacts(
 
 async def get_contact_by_id(
     db: AsyncSession,
+    user: User,
     contact_id: int,
 ) -> Contact | None:
     """Повертає контакт за його ідентифікатором."""
 
     statement = (
-        select(Contact)
-        .filter_by(id=contact_id)
-        .options(selectinload(Contact.phones))
+        select(Contact).filter_by(id=contact_id, user=user).options(selectinload(Contact.phones))
     )
 
     result = await db.execute(statement)
@@ -49,19 +46,20 @@ async def get_contact_by_id(
 
 async def create_contact(
     db: AsyncSession,
+    user: User,
     contact_data: ContactCreateSchema,
 ) -> Contact:
     """Створює контакт разом із переданими номерами телефонів."""
 
     contact_fields = contact_data.model_dump(exclude={"phones"})
     phone_models = [
-        Phone(**phone_data.model_dump())
-        for phone_data in contact_data.phones
+        Phone(**phone_data.model_dump()) for phone_data in contact_data.phones
     ]
 
     new_contact = Contact(
         **contact_fields,
         phones=phone_models,
+        user=user
     )
 
     db.add(new_contact)
@@ -72,12 +70,13 @@ async def create_contact(
 
 async def update_contact(
     db: AsyncSession,
+    user: User,
     contact_data: ContactUpdateSchema,
     contact_id: int,
 ) -> Contact | None:
     """Оновлює контакт за його ідентифікатором."""
 
-    statement = select(Contact).filter_by(id=contact_id)
+    statement = select(Contact).filter_by(id=contact_id, user=user)
     result = await db.execute(statement)
 
     contact_to_update = result.scalar_one_or_none()
@@ -97,11 +96,12 @@ async def update_contact(
 
 async def delete_contact(
     db: AsyncSession,
+    user: User,
     contact_id: int,
 ) -> Contact | None:
     """Видаляє контакт за його ідентифікатором."""
 
-    statement = select(Contact).filter_by(id=contact_id)
+    statement = select(Contact).filter_by(id=contact_id, user=user)
     result = await db.execute(statement)
 
     contact_to_delete = result.scalar_one_or_none()
