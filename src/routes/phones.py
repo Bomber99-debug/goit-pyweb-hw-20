@@ -71,6 +71,7 @@ async def get_phone_by_id(
 @router.post(
     "/",
     response_model=PhoneCreateSchema,
+    status_code=status.HTTP_201_CREATED
 )
 async def create_phone(
     phone_data: PhoneCreateSchema,

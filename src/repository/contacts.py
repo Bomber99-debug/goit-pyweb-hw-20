@@ -53,7 +53,7 @@ async def create_contact(
 
     contact_fields = contact_data.model_dump(exclude={"phones"})
     phone_models = [
-        Phone(**phone_data.model_dump()) for phone_data in contact_data.phones
+        Phone(**phone_data.model_dump(), user=user) for phone_data in contact_data.phones
     ]
 
     new_contact = Contact(
